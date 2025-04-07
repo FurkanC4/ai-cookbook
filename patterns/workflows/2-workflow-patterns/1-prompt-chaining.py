@@ -4,7 +4,8 @@ from pydantic import BaseModel, Field
 from openai import OpenAI
 import os
 import logging
-
+from dotenv import load_dotenv
+load_dotenv()
 # Set up logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -18,9 +19,10 @@ model = "gpt-4o"
 
 # --------------------------------------------------------------
 # Step 1: Define the data models for each stage
+# Her adım için verilerin modellerini tanımlama işlemi yapılıyor.
 # --------------------------------------------------------------
 
-
+# Burası etkinlik olup olmadığını güven skorunu ve de açıklamayı getirmekte 
 class EventExtraction(BaseModel):
     """First LLM call: Extract basic event information"""
 
@@ -29,27 +31,29 @@ class EventExtraction(BaseModel):
         description="Whether this text describes a calendar event"
     )
     confidence_score: float = Field(description="Confidence score between 0 and 1")
+    #* skor 0 ile 1 arasında olduğunu göstermekte
 
 
+# Bu sınıf etkinlik adı, tarihi ve süresini katılımcıları belirtmekte
 class EventDetails(BaseModel):
     """Second LLM call: Parse specific event details"""
 
-    name: str = Field(description="Name of the event")
+    name: str = Field(description="Name of the event") #katılımcı isimleri
     date: str = Field(
         description="Date and time of the event. Use ISO 8601 to format this value."
     )
-    duration_minutes: int = Field(description="Expected duration in minutes")
-    participants: list[str] = Field(description="List of participants")
+    duration_minutes: int = Field(description="Expected duration in minutes") #kaç dakika 
+    participants: list[str] = Field(description="List of participants") # katılımcı listesi
 
-
+# Bu sınıf kullanıcıya gidecek olan onay mesajını belirtmekte ve de takvim linkini oturtmakta
 class EventConfirmation(BaseModel):
     """Third LLM call: Generate confirmation message"""
 
     confirmation_message: str = Field(
-        description="Natural language confirmation message"
+        description="Natural language confirmation message" # mesaj içindeki onay
     )
     calendar_link: Optional[str] = Field(
-        description="Generated calendar link if applicable"
+        description="Generated calendar link if applicable" # link araması 
     )
 
 
@@ -169,7 +173,7 @@ def process_calendar_request(user_input: str) -> Optional[EventConfirmation]:
 # Step 4: Test the chain with a valid input
 # --------------------------------------------------------------
 
-user_input = "Let's schedule a 1h team meeting next Tuesday at 2pm with Alice and Bob to discuss the project roadmap."
+user_input = "Show the for next weekend meeting in time is 9 o'clock, april 10.. I want everyone takes the notebook on come the office. this is important."
 
 result = process_calendar_request(user_input)
 if result:
@@ -183,13 +187,3 @@ else:
 # --------------------------------------------------------------
 # Step 5: Test the chain with an invalid input
 # --------------------------------------------------------------
-
-user_input = "Can you send an email to Alice and Bob to discuss the project roadmap?"
-
-result = process_calendar_request(user_input)
-if result:
-    print(f"Confirmation: {result.confirmation_message}")
-    if result.calendar_link:
-        print(f"Calendar Link: {result.calendar_link}")
-else:
-    print("This doesn't appear to be a calendar event request.")

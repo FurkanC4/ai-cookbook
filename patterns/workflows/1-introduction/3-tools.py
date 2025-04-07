@@ -1,10 +1,10 @@
 import json
 import os
-
+from dotenv import load_dotenv
 import requests
 from openai import OpenAI
 from pydantic import BaseModel, Field
-
+load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 """
@@ -57,7 +57,7 @@ messages = [
 ]
 
 completion = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4",
     messages=messages,
     tools=tools,
 )
@@ -66,7 +66,7 @@ completion = client.chat.completions.create(
 # Step 2: Model decides to call function(s)
 # --------------------------------------------------------------
 
-completion.model_dump()
+#print(completion.model_dump())
 
 # --------------------------------------------------------------
 # Step 3: Execute get_weather function
@@ -116,3 +116,4 @@ completion_2 = client.beta.chat.completions.parse(
 final_response = completion_2.choices[0].message.parsed
 final_response.temperature
 final_response.response
+print(final_response)
